@@ -38,7 +38,8 @@ public class NatterController {
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
         log.info("请求成功");
         // 返回结果
-        String body = "true".equals(base64) ?  MD5Util.base64Decode(response.getBody()) : response.getBody();
+        String body =  response.getBody();
+        body = "true".equals(base64) ?  MD5Util.base64Decode(response.getBody()) : body;
         return ResponseEntity.status(response.getStatusCode()).body(body);
     }
 
