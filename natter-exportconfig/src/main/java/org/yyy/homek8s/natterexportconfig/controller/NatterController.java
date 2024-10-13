@@ -19,7 +19,7 @@ public class NatterController {
 
 
     @GetMapping("/getFSLLink")
-    public ResponseEntity<String> getFSLLink(String key,@Nullable String url,@Nullable String type,@Nullable Integer base64 ) {
+    public ResponseEntity<String> getFSLLink(String key,@Nullable String url,@Nullable String type,@Nullable String base64 ) {
 
         type = StringUtil.isNullOrEmpty(type) ? "" : "/"+type;
 
@@ -38,7 +38,7 @@ public class NatterController {
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
         log.info("请求成功");
         // 返回结果
-        String body = base64 == 1 ?  MD5Util.base64Decode(response.getBody()) : response.getBody();
+        String body = "true".equals(base64) ?  MD5Util.base64Decode(response.getBody()) : response.getBody();
         return ResponseEntity.status(response.getStatusCode()).body(body);
     }
 
