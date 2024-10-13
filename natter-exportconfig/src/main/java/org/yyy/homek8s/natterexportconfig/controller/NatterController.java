@@ -2,6 +2,7 @@ package org.yyy.homek8s.natterexportconfig.controller;
 
 import ch.qos.logback.core.util.StringUtil;
 import jakarta.annotation.Nullable;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 import static org.yyy.homek8s.natterexportconfig.NatterExportconfigApplication.STORAGE;
 
 @RestController()
+@Slf4j
 public class NatterController {
 
 
@@ -32,7 +34,7 @@ public class NatterController {
 
         url += type;
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-
+        log.info("请求成功");
         // 返回结果
         return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
     }

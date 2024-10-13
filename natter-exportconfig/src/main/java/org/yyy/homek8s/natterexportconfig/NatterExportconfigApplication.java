@@ -10,11 +10,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @SpringBootApplication
 public class NatterExportconfigApplication {
 
-    public static Map<String, String> STORAGE = null;
+    public static Map<String, String> STORAGE = new ConcurrentHashMap<>();
 
 
     public static void main(String[] args) {
-        STORAGE = new ConcurrentHashMap<>();
         STORAGE.put("fsl","https://balesp.xyz/NBB-c/Dc6vR");
         SpringApplication.run(NatterExportconfigApplication.class, args);
     }
