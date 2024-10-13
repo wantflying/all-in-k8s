@@ -1,0 +1,7 @@
+[
+  {
+    "name": "java.util.concurrent.ConcurrentHashMap$MapEntry",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true
+  }
+]
