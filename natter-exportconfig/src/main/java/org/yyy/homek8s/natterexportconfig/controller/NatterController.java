@@ -57,14 +57,15 @@ public class NatterController {
                                                @RequestParam("pwd") String pwd) {
 
         String tpl = "proxies:\n" +
-                "    - { name: home, type: ss, server: ss-d.yxs.one, port: %s, cipher: aes-256-gcm, password: %s, udp: false }\n";
+                "    - { name: home, type: ss, server: %s, port: %s, cipher: aes-256-gcm, password: %s, udp: false }\n";
         // 需要替换的值
         String port = "8388"; // 示例端口
         String password = StringUtil.isNullOrEmpty(pwd) ? "your_password" : pwd; // 示例密码
-        port = STORAGE.getOrDefault(key,"80");// 更新 HashMap 中的值
+        port = STORAGE.getOrDefault(key,"127.0.0.1:80");// 更新 HashMap 中的值
+        String[] parts = port.split(":");
 
         // 使用 String.format 替换占位符
-        String result = String.format(tpl, port, password);
+        String result = String.format(tpl, parts[0],parts[1], password);
         log.info("create url :\n {}",result);
         // 返回结果
         return new ResponseEntity<>(result,HttpStatusCode.valueOf(200));
