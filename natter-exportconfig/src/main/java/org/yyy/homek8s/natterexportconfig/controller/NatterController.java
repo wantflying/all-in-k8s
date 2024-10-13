@@ -19,7 +19,7 @@ public class NatterController {
 
 
     @GetMapping("/getFSLLink")
-    public ResponseEntity<String> getFSLLink(String key,@Nullable String url,@Nullable String type,@Nullable int base64) {
+    public ResponseEntity<String> getFSLLink(String key,@Nullable String url,@Nullable String type,@Nullable Integer base64 ) {
 
         type = StringUtil.isNullOrEmpty(type) ? "" : "/"+type;
 
