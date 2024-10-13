@@ -2,6 +2,7 @@ package org.yyy.homek8s.natterexportconfig.utils;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 
 /**
  * MD5加密
@@ -37,6 +38,15 @@ public class MD5Util {
         return hexString.toString();
     }
 
-
-
+   public static String base64Decode(String str){
+       try {
+           byte[] decodedBytes = Base64.getDecoder().decode(str);
+           String decodedString = new String(decodedBytes);
+           System.out.println("解码后的字符串: " + decodedString);
+           return decodedString;
+       } catch (IllegalArgumentException e) {
+           System.out.println("无效的 Base64 编码字符串: " + e.getMessage());
+           return "";
+       }
+   }
 }
