@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>更新 URL</title>
+    <title>HOME-LAB</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -10,7 +10,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 600px;
+            max-width: 1000px;
             margin: auto;
             background: white;
             padding: 20px;
@@ -52,10 +52,15 @@
             background-color: #4cae4c;
         }
     </style>
+    <script>
+        function showAlert(message) {
+            alert(message);
+        }
+    </script>
 </head>
 <body>
 <div class="container">
-    <h1>更新 URL</h1>
+    <h1>HOMELAB 更新URL+PORT</h1>
     <table>
         <thead>
         <tr>
@@ -68,15 +73,14 @@
         <tr th:each="entry : ${storage}">
             <td th:text="${entry.key}"></td>
             <td th:text="${entry.value}"></td>
-            <td th:if="${entry.key == 'fsl' or entry.key.startsWith('u-')}">
-                <form action="#" th:action="@{/update-url}" method="post">
+            <td>
+                <form action="#" th:action="@{/update-url}" method="post" onsubmit="showAlert('更新成功!');">
                     <input type="hidden" name="key" th:value="${entry.key}" />
                     <input type="text" name="value" th:value="${entry.value}" required />
                     <input type="hidden" name="token" th:value="${token}" />
                     <button type="submit">更新</button>
                 </form>
             </td>
-            <td th:if="${!(entry.key == 'fsl' or entry.key.startsWith('u-'))}">无更新操作</td>
         </tr>
         </tbody>
     </table>
