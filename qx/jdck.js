@@ -55,7 +55,7 @@ $task.fetch({
     //     'Content-Type': 'application/json'
     // }
 }).then(response => {
-    console.log('接口响应:', response.body);
+    console.log('接口请求正常，响应:', response);
     // 弹出成功通知
     $notify('成功', '接口请求成功', response.body);
 }).catch(error => {
