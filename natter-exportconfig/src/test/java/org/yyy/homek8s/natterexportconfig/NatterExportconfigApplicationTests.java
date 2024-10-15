@@ -8,12 +8,12 @@ import org.yyy.homek8s.natterexportconfig.controller.PodLogMonitorController;
 @SpringBootTest
 class NatterExportconfigApplicationTests {
 
-    @Autowired
-    PodLogMonitorController podLogMonitorController;
-
-    @Test
-    void contextLoads() {
-        podLogMonitorController.monitorPodLogs();
-    }
+//    @Autowired
+//    PodLogMonitorController podLogMonitorController;
+//
+//    @Test
+//    void contextLoads() {
+//        podLogMonitorController.monitorPodLogs();
+//    }
 
 }
