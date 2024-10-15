@@ -1,12 +1,13 @@
+$notify('提示', '京东开始抓取Cookie', '');
 const url = $request.url;
 const headers = $request.headers;
 const cookie = headers["Cookie"] || headers["cookie"]; // 获取 Cookie
 
 // 检查请求的路径
-if (!url.includes("mllog.jd.com")) {
+//if (!url.includes("mllog.jd.com")) {
     // 不是目标路径，直接返回
-    $done();
-}
+  //  $done();
+//}
 
 // 检查 Cookie 是否存在
 if (!cookie) {
