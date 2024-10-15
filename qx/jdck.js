@@ -1,4 +1,4 @@
-$notify('提示', '京东开始抓取Cookie', '');
+console.log('开始抓取京东ck');
 const url = $request.url;
 const headers = $request.headers;
 const cookie = headers["Cookie"] || headers["cookie"]; // 获取 Cookie
@@ -41,17 +41,19 @@ if (!cookieData.ptPin || !cookieData.ptKey) {
     $notify('错误', 'ptPin 或 ptKey 未找到', '');
     $done();
 }
-
+console.log('抓取到ck:');
+console.log('ptPin:'+cookieData.ptPin);
+console.log('ptKey:'+cookieData.ptKey);
 // 拼接参数到 URL
 const apiUrl = `http://192.168.123.136:8080/qlapi/updateJDCookie?ptPin=${encodeURIComponent(cookieData.ptPin)}&ptKey=${encodeURIComponent(cookieData.ptKey)}`;
 
 // 调用接口，使用 GET 请求
 $task.fetch({
     url: apiUrl,
-    method: 'GET',
-    headers: {
-        'Content-Type': 'application/json'
-    }
+    method: 'GET'
+    // headers: {
+    //     'Content-Type': 'application/json'
+    // }
 }).then(response => {
     console.log('接口响应:', response.body);
     // 弹出成功通知
