@@ -14,6 +14,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(tokenInterceptor)
+                .excludePathPatterns("/qlapi/updateJDCookie")
                 .addPathPatterns("/**"); // 拦截所有请求，或者指定特定路径
     }
 }
