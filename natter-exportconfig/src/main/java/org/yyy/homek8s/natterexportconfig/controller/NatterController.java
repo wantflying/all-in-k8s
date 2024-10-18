@@ -28,11 +28,12 @@ public class NatterController {
 
         // 设置 User-Agent
         HttpHeaders headers = new HttpHeaders();
-        headers.set("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1");
+        headers.set("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148");
         HttpEntity<String> entity = new HttpEntity<>(headers);
         // 调用第三方接口
-        url = StringUtil.isNullOrEmpty(url) ? STORAGE.get("fsl") : url;// 替换为实际的 API URL
         if(!StringUtil.isNullOrEmpty(url)) STORAGE.put(key,url);
+        url = StringUtil.isNullOrEmpty(url) ? STORAGE.get("fsl") : url;// 替换为实际的 API URL
+
 
         url += type;
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
