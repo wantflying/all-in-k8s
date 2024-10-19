@@ -21,7 +21,7 @@ public class MapPersisService {
 
 
     // 定时任务，每 10 分钟执行
-    @Scheduled(fixedRate = 1 * 10 * 1000) // 600000 毫秒 = 10 分钟
+    @Scheduled(fixedRate = 1 * 60 * 1000) // 600000 毫秒 = 10 分钟
     public void scheduleTask() {
         saveToFile(); // 持久化 HashMap
     }
