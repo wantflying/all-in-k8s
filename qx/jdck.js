@@ -11,7 +11,11 @@ if (isQX) {
 } else {
     console.log('不支持的环境');
 }
-$notification.post('开始抓取京东ck', '', '');
+if (isQX) {
+    $notify('开始抓取京东ck', '', '');
+} else if (isLOON) {
+    $notification.post('开始抓取京东ck', '', '');
+} 
 console.log('开始抓取京东ck');
 
 let url, headers, cookie;
