@@ -12,9 +12,9 @@ if (isQX) {
     console.log('不支持的环境');
 }
 if (isQX) {
-    $notify('开始抓取京东ck', '', '');
+   // $notify('开始抓取京东ck', '', '');
 } else if (isLOON) {
-    $notification.post('开始抓取京东ck', '', '');
+  //  $notification.post('开始抓取京东ck', '', '');
 } 
 console.log('开始抓取京东ck');
 
@@ -37,9 +37,9 @@ if (isQX) {
 if (!cookie) {
     console.log('Cookie 未找到');
     if (isQX) {
-        $notify('错误', 'Cookie 未找到', '');
+      //  $notify('错误', 'Cookie 未找到', '');
     } else if (isLOON) {
-        $notification.post('错误', 'Cookie 未找到', '');
+      //  $notification.post('错误', 'Cookie 未找到', '');
     }
     $done();
 }
@@ -67,9 +67,9 @@ cookieLines.forEach(line => {
 if (!cookieData.ptPin || !cookieData.ptKey) {
     console.log('ptPin 或 ptKey 未找到');
     if (isQX) {
-        $notify('错误', 'ptPin 或 ptKey 未找到', '');
+       // $notify('错误', 'ptPin 或 ptKey 未找到', '');
     } else if (isLOON) {
-        $notification.post('错误', 'ptPin 或 ptKey 未找到', '');
+      //  $notification.post('错误', 'ptPin 或 ptKey 未找到', '');
     }
     $done();
 }
