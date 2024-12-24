@@ -1,0 +1,127 @@
+---
+# Source: shadowsocks-rust/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: shadowsocks-rust
+  labels:
+    helm.sh/chart: shadowsocks-rust-0.1.0
+    app.kubernetes.io/name: shadowsocks-rust
+    app.kubernetes.io/instance: shadowsocks-rust
+    app.kubernetes.io/version: "1.31.1"
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: shadowsocks-rust/templates/config.yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: shadowsocks-rust
+  labels:
+    helm.sh/chart: shadowsocks-rust-0.1.0
+    app.kubernetes.io/name: shadowsocks-rust
+    app.kubernetes.io/instance: shadowsocks-rust
+    app.kubernetes.io/version: "1.31.1"
+    app.kubernetes.io/managed-by: Helm
+data:
+  config.json: |
+    {
+      "servers":
+        [
+          {
+            "fast_open": true,
+            "method": "aes-256-gcm",
+            "mode": "tcp_and_udp",
+            "password": "yxs4538asdahsdkjhasdhahddhsahquwhoha",
+            "server": "192.168.123.136",
+            "server_port": 8388,
+            "service_port": 8838
+          }
+        ]
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shadowsocks-rust
+  labels:
+    helm.sh/chart: shadowsocks-rust-0.1.0
+    app.kubernetes.io/name: shadowsocks-rust
+    app.kubernetes.io/instance: shadowsocks-rust
+    app.kubernetes.io/version: "1.31.1"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: shadowsocks-rust
+      app.kubernetes.io/instance: shadowsocks-rust
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: shadowsocks-rust
+        app.kubernetes.io/instance: shadowsocks-rust
+    spec:
+      serviceAccountName: shadowsocks-rust
+      securityContext:
+        {}
+      volumes:
+      - name: config
+        configMap:
+          name: shadowsocks-rust
+      - name: plugins
+        emptyDir: {}
+      hostNetwork: true
+      containers:
+      - name: shadowsocks-rust
+        securityContext:
+          privileged: true
+        image: "ghcr.io/shadowsocks/ssserver-rust:latest"
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: config
+          mountPath: /etc/shadowsocks-rust
+          readOnly: true
+        - name: plugins
+          mountPath: /usr/local/bin
+        ports:
+        - name: ss-8388
+          containerPort: 8388
+          protocol: TCP
+        livenessProbe:
+          tcpSocket:
+            port: 8388
+          failureThreshold: 3
+          initialDelaySeconds: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          tcpSocket:
+            port: 8388
+          initialDelaySeconds: 2
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 20m
+            memory: 32Mi
+---
+# Source: shadowsocks-rust/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "shadowsocks-rust-test-connection"
+  labels:
+    helm.sh/chart: shadowsocks-rust-0.1.0
+    app.kubernetes.io/name: shadowsocks-rust
+    app.kubernetes.io/instance: shadowsocks-rust
+    app.kubernetes.io/version: "1.31.1"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['shadowsocks-rust:192.168.123.136:8838']
+  restartPolicy: Never

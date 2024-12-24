@@ -1,0 +1,68 @@
+# apiVersion: v1
+# kind: Namespace
+# metadata:
+#   name: natter
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emby
+  namespace: natter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: natter-emby-cf
+  template:
+    metadata:
+      labels:
+        app: natter-emby-cf
+    spec:
+      hostNetwork: true
+      containers:
+        - name: emby
+          imagePullPolicy: IfNotPresent
+          image: nattertool/natter:2.1.1
+          args: ["-e", "/opt/cf-redir.py", "-p", "30010"]
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+          volumeMounts:
+            - name: cf-redir
+              mountPath: /opt/cf-redir.py
+     #   - name: nginx
+      #    image: nginx
+      #    env:
+      #      - name: TZ
+      #        value: Asia/Shanghai
+      #    volumeMounts:
+      #      - name: html
+      #        mountPath: /usr/share/nginx/html
+      volumes:
+      # - name: html
+      #   hostPath:
+      # # 确保文件所在目录成功创建。
+      #     path: /opt/Natter/natter-docker/nginx-cloudflare/html-self
+      #     type: DirectoryOrCreate
+      - name: cf-redir
+        hostPath:
+          path: /home/yxs/k8syaml/notice/cf-emby.py
+          type: FileOrCreate
+
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: nginx
+#   namespace: natter
+# spec:
+#   type: NodePort
+#   ports:
+#     - port: 80
+#       targetPort: 80
+#       nodePort: 30011
+#   selector:
+#     app: nginx
+
+

@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: syncthing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: syncthing
+  template:
+    metadata:
+      labels:
+        app: syncthing
+    spec:
+      containers:
+      - name: syncthing
+        image: syncthing/syncthing
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        ports:
+        - containerPort: 8384 # Web UI
+        - containerPort: 22000 # TCP file transfers
+        - containerPort: 21027 # Local discovery
+        volumeMounts:
+        - mountPath: /var/syncthing/Sync
+          name: syncthing-storage
+
+      volumes:
+      - name: syncthing-storage
+        hostPath:
+          path: /home/yxs/syncthing # Update this path as necessary
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: syncthing
+spec:
+  type: NodePort
+  ports:
+    - port: 8384
+      name: sync-port-1
+      targetPort: 8384
+      nodePort: 30015 # Optional: specify node port
+    - port: 22000
+      name: sync-port-2
+      targetPort: 22000
+      protocol: TCP
+      nodePort: 30016 # Optional: specify node port
+    - port: 21027
+      name: sync-port-3
+      targetPort: 21027
+      nodePort: 30017 # Optional: specify node port
+      protocol: UDP
+  selector:
+    app: syncthing

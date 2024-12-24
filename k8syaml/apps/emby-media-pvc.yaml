@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: emby-media
+  namespace: default
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Gi
+  storageClassName: rook-cephfs
+  volumeMode: Filesystem
+  volumeName: pvc-fa954a65-5eb2-4969-954a-ce8b688b563f

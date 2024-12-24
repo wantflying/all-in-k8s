@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webdav
+  labels:
+    app: webdav
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webdav
+  template:
+    metadata:
+      labels:
+        app: webdav
+    spec:
+      securityContext:
+        fsGroup: 1000          # 文件系统组 ID，影响持久卷的权限
+      containers:
+      - name: webdav
+        image: bytemark/webdav
+        env:
+        - name: AUTH_TYPE
+          value: "Digest"
+        - name: USERNAME
+          value: "webdav"
+        - name: PASSWORD
+          value: "webdav4538"
+        volumeMounts:
+        - name: shared-volume
+          mountPath: /var/lib/dav/data
+      volumes:
+      - name: shared-volume
+        hostPath:
+          path: /nfsdata/download  # 替换为你的共享文件夹路径
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webdav
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30022  # 可选，指定 NodePort；如果不指定，Kubernetes 会自动分配一个
+  selector:
+    app: webdav

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb
+  namespace: default
+spec:
+  ports:
+  - port: 3306
+    protocol: TCP
+    targetPort: 3306
+    nodePort: 30018
+  selector:
+    app: mariadb
+  sessionAffinity: None
+  type: NodePort

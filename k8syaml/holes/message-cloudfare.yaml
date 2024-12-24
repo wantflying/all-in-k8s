@@ -1,0 +1,37 @@
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: message-hole
+  namespace: natter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: message-hole
+  template:
+    metadata:
+      labels:
+        app: message-hole
+    spec:
+      hostNetwork: true
+      containers:
+        - name: message-hole
+          imagePullPolicy: IfNotPresent
+          image: nattertool/natter:2.1.1
+          args: ["-e", "/opt/cf-redir.py", "-p", "3000"]
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+          volumeMounts:
+            - name: cf-redir
+              mountPath: /opt/cf-redir.py
+      volumes:
+        - name: cf-redir
+          hostPath:
+            path: /home/yxs/k8syaml/notice/cf-message.py
+            type: FileOrCreate
+    
+

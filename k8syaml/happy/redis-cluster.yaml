@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-conf
+  namespace: happy
+data:
+  redis.conf: |
+    appendonly yes
+    cluster-enabled yes
+    cluster-config-file /var/lib/redis/nodes.conf
+    cluster-node-timeout 5000
+    dir /var/lib/redis
+    port 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+  namespace: happy
+  labels:
+    app: redis
+spec:
+  ports:
+  - name: redis-port
+    port: 6379
+  clusterIP: None
+  selector:
+    app: redis
+    appCluster: redis-cluster
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-app
+  namespace: happy
+spec:
+  serviceName: "redis-service"
+  replicas: 6
+  template:
+    metadata:
+      labels:
+        app: redis
+        appCluster: redis-cluster
+    spec:
+      terminationGracePeriodSeconds: 20
+      containers:
+      - name: redis
+        image: redis:6.2.16
+        command:
+          - "redis-server"  # Redis 启动命令
+        args:
+          - "/etc/redis/redis.conf"  # Redis 配置文件路径
+          - "--protected-mode"
+          - "no"
+        resources:  # 资源请求
+          requests:
+            cpu: "100m"  # CPU 资源请求
+            memory: "100Mi"  # 内存请求
+        ports:
+            - name: redis
+              containerPort: 6379
+              protocol: "TCP"
+            - name: cluster
+              containerPort: 16379
+              protocol: "TCP"
+        volumeMounts:
+          - name: "redis-conf"  # 挂载 ConfigMap 生成的文件
+            mountPath: "/etc/redis"  # 挂载路径
+          - name: "redis-data"  # 挂载主机路径
+            mountPath: "/var/lib/redis"
+      volumes:
+      - name: "redis-conf"  # 引用 ConfigMap 卷
+        configMap:
+          name: "redis-conf"
+          items:
+            - key: "redis.conf"  # ConfigMap 中的文件
+              path: "redis.conf"  # 挂载文件名
+      - name: "redis-data"  # 使用 hostPath
+        hostPath:
+          path: /nfsdata/happydata/redis  # 修改为您的主机路径
+          type: DirectoryOrCreate  # 目录不存在时创建

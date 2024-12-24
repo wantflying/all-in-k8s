@@ -1,0 +1,187 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: rocketmqnamesrv
+  name: rocketmqnamesrv
+  namespace: happy
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9876
+    targetPort: 9876
+    name: namesrvport
+  selector:
+    app: rocketmqnamesrv
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rocketmqnamesrv
+  namespace: happy
+spec:
+  serviceName: rocketmqnamesrv
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rocketmqnamesrv
+  template:
+    metadata:
+      labels:
+        app: rocketmqnamesrv
+    spec:
+      containers:
+      - name: rocketmqnamesrv
+        image: apache/rocketmq:4.9.4
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: TZ
+            value: Asia/Shanghai
+          - name: JAVA_OPT_EXT
+            value: "-Duser.home=/home/rocketmq -Xms512M -Xmx512M -Xmn128m"
+        command: ["sh","/home/rocketmq/rocketmq-4.9.4/bin/mqnamesrv"]
+        readinessProbe:
+          tcpSocket:
+            port: 9876
+          initialDelaySeconds: 15
+          timeoutSeconds: 5
+          periodSeconds: 20
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rocketmqbroker
+  namespace: happy
+data:
+  broker.conf: |
+        brokerClusterName=DefaultCluster
+        brokerName=broker-a
+        brokerId=0
+        deleteWhen=04
+        fileReservedTime=48
+        brokerRole=ASYNC_MASTER
+        flushDiskType=ASYNC_FLUSH
+        namesrvAddr=rocketmqnamesrv:9876
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: mqbroker
+  name: mqbroker
+  namespace: happy
+spec:
+  type: ClusterIP
+  ports:
+  - port: 10911
+    targetPort: 10911
+    name: broker-port
+  selector:
+    app: mqbroker
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rocketmqbroker
+  namespace: happy
+spec:
+  serviceName: rocketmqbroker
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rocketmqbroker
+  template:
+    metadata:
+      labels:
+        app: rocketmqbroker
+    spec:
+      securityContext:
+        fsGroup: 3000
+      containers:
+      - name: rocketmqbroker
+        image: apache/rocketmq:4.9.4
+        env:
+          - name: TZ
+            value: Asia/Shanghai
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+         # - name: JAVA_OPT_EXT
+          #  value: "-Xms4096M -Xmx4096M -Xmn1024m -XX:ParallelGCThreads=2"
+          - name: NAMESRV_ADDR
+            value: rocketmqnamesrv:9876
+        command: ["sh","/home/rocketmq/rocketmq-4.9.4/bin/mqbroker","-n","rocketmqnamesrv:9876","-c","/home/rocketmq/rocketmq-4.9.4/conf/broker.conf"]
+        #command: ["sleep", "300"]
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 10911
+        volumeMounts:
+        - mountPath: /home/rocketmq/rocketmq-4.9.4/conf/broker.conf
+          name: rocketmqbroker-config
+          subPath: broker.conf
+        - mountPath: /home/rocketmq/store
+          name: rocketmqbroker-data
+      #  resources:
+       #   limits:
+        #    cpu: "2"
+         #   memory: 6Gi
+        #  requests:
+         #   cpu: "1"
+          #  memory: 4Gi
+      volumes:
+      - configMap:
+         # defaultMode: 420
+          name: rocketmqbroker
+        name: rocketmqbroker-config
+      - name: rocketmqbroker-data
+        hostPath:
+          path: /nfsdata/happydata/rocketmq
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: rocketmq-dashboard
+  name: rocketmq-dashboard
+  namespace: happy
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 38080
+    name: port
+  selector:
+    app: rocketmq-dashboard
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rocketmq-dashboard
+  namespace: happy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rocketmq-dashboard
+  template:
+    metadata:
+     labels:
+       app: rocketmq-dashboard
+    spec:
+      containers:
+      - name: rocketmq-dashboard
+        image: apacherocketmq/rocketmq-dashboard
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: TZ
+            value: Asia/Shanghai
+          - name: JAVA_OPTS
+            value: "-Drocketmq.namesrv.addr=rocketmqnamesrv:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false"
+        readinessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 15
+

@@ -1,0 +1,59 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sun-panel
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sun-panel
+  template:
+    metadata:
+      labels:
+        app: sun-panel
+    spec:
+      containers:
+        - name: sun-panel
+          image: hslr/sun-panel:1.6.0-beta24-09-06
+          ports:
+            - containerPort: 3002
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: conf-volume
+              mountPath: /app/conf
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+            # - name: runtime-volume
+            #   mountPath: /app/runtime
+            # - name: sata-volume
+            #   mountPath: /os
+      volumes:
+        - name: conf-volume
+          hostPath:
+            path: /home/yxs/k8syaml/apps/panel/conf  # 在节点上找到 conf 目录
+        - name: docker-sock
+          hostPath:
+            path: /var/run/containerd/containerd.sock
+        # - name: runtime-volume
+        #   hostPath:
+        #     path: ./runtime  # 在节点上找到 runtime 目录
+        # - name: sata-volume
+        #   hostPath:
+        #     path: /mnt/sata1-1  # 在节点上找到硬盘挂载点
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sun-panel
+  namespace: default
+spec:
+  type: NodePort
+  ports:
+    - port: 3002
+      targetPort: 3002
+      nodePort: 30000  # 可选，指定 NodePort，如果不指定，Kubernetes 会自动分配一个
+  selector:
+    app: sun-panel

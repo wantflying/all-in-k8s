@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: natter-exportconfig
+  labels:
+    app: natter-exportconfig
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: natter-exportconfig
+  template:
+    metadata:
+      labels:
+        app: natter-exportconfig
+    spec:
+      containers:
+        - name: natter-exportconfig
+          image: xiushengyuan/natter-exportconfig:v0.0.1
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: natter-exportconfig-service
+spec:
+  type: NodePort
+  selector:
+    app: natter-exportconfig
+  ports:
+    - port: 8080          # Cluster IP port
+      targetPort: 8080    # Container port
+      nodePort: 30022     # NodePort

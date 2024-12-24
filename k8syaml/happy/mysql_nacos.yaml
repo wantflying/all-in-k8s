@@ -1,0 +1,134 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: happy
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: happy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: rootpassword  # 请根据需要更改密码
+        - name: MYSQL_DATABASE
+          value: nacos_db
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: mysql-storage
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-storage
+        hostPath:
+          path: /nfsdata/happydata/mysql  # MySQL 数据存储路径
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: happy
+spec:
+  type: NodePort
+  ports:
+  - port: 3306
+    targetPort: 3306
+    nodePort: 33306 # NodePort 端口
+  selector:
+    app: mysql
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nacos
+  namespace: happy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nacos
+  template:
+    metadata:
+      labels:
+        app: nacos
+    spec:
+      containers:
+      - name: nacos
+        image: nacos/nacos-server:v1.4.3
+        env:
+        - name: MODE
+          value: standalone
+        - name: MYSQL_SERVICE_HOST	
+          value: mysql.happy.svc.cluster.local
+        - name: MYSQL_SERVICE_USER
+          value: root
+        - name: MYSQL_SERVICE_PASSWORD
+          value: rootpassword
+        - name: NACOS_AUTH_ENABLE
+          value: "true"
+        - name: MYSQL_SERVICE_DB_NAME
+          value: nacos_config
+        - name: SPRING_DATASOURCE_PLATFORM
+          value: mysql
+        - name: MYSQL_SERVICE_DB_PARAM
+          value: allowPublicKeyRetrieval=true&useSSL=false
+        livenessProbe:
+          httpGet:
+            path: /nacos/actuator/health
+            port: 8848
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /nacos/actuator/health
+            port: 8848
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        ports:
+        - containerPort: 8848
+        volumeMounts:
+        - name: nacos-storage
+          mountPath: /home/nacos/data
+      volumes:
+      - name: nacos-storage
+        hostPath:
+          path: /nfsdata/happydata/nacos  # Nacos 数据存储路径
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nacos
+  namespace: happy
+spec:
+  type: NodePort
+  ports:
+  - port: 8848
+    targetPort: 8848
+    nodePort: 38848  # NodePort 端口
+  selector:
+    app: nacos

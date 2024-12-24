@@ -1,0 +1,44 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edraw
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: edraw
+  template:
+    metadata:
+      labels:
+        app: edraw
+    spec:
+      hostNetwork: true
+      containers:
+        - name: edraw
+          image: excalidraw/excalidraw
+          ports:
+            - containerPort: 80
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+
+    
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: edraw
+  namespace: default
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30014
+
+  selector:
+    app: edraw
+

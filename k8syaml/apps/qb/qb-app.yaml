@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qbittorrent
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qbittorrent
+  template:
+    metadata:
+      labels:
+        app: qbittorrent
+    spec:
+      hostNetwork: true
+      containers:
+        - name: qbittorrent
+          imagePullPolicy: IfNotPresent
+          #image: superng6/qbittorrent:4.6.7_v2.0.10
+          image: linuxserver/qbittorrent:4.6.7
+          env:
+            - name: TZ
+              value: "Asia/Shanghai"
+            - name: WEBUI_PORT
+              value: "18080"
+            - name: PUID
+              value: "0"
+            - name: PGID
+              value: "0"
+            - name: LANG
+              value: "zh_CN.UTF-8"
+            - name: LC_ALL
+              value: "zh_CN.UTF-8"
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config
+            - name: downloads-volume
+              mountPath: /downloads
+          ports:
+            - containerPort: 18080
+        - name: qb
+          securityContext:
+            privileged: true  # 启用特权模式
+          imagePullPolicy: IfNotPresent
+          image: nattertool/natter:2.1.1
+          args: ["-m","iptables","-e", "/opt/qb.sh", "-r"]
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+          volumeMounts:
+            - name: qbsh
+              mountPath: /opt/qb.sh
+      volumes:
+      - name: qbsh
+        hostPath:
+          path: /home/yxs/k8syaml/notice/qb.sh
+          type: FileOrCreate
+      - name: config-volume
+        hostPath:
+          path: /home/yxs/k8syaml/apps/qb/config  # 替换为实际路径
+      - name: downloads-volume
+        persistentVolumeClaim:
+          claimName: download-pvc  # 使用已声明好的 PVC
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: download-pvc
+ # labels:
+  #  app: qbittorrent
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Gi  # 根据需要调整存储大小
+  storageClassName: manual-download  # 使用 rook-block 存储类
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: download-pv
+spec:
+  storageClassName: manual-download
+  capacity:
+    storage: 500Gi  # 根据需要调整存储大小
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /nfsdata/download  # 这里指定主机上的路径
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent
+  namespace: default
+spec:
+  type: NodePort
+  ports:
+    - port: 18080
+      targetPort: 18080
+      nodePort: 30013  # 可选，指定 NodePort
+  selector:
+    app: qbittorrent
+

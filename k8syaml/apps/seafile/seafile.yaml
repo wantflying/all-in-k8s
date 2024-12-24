@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: seafile
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: seafile
+  template:
+    metadata:
+      labels:
+        app: seafile
+    spec:
+      containers:
+        - name: seafile
+          #        image: seafileltd/seafile-mc:9.0.10
+          image: seafileltd/seafile-mc:11.0-latest
+          #image: docker.seadrive.org/seafileltd/seafile-pro-mc:11.0-latest
+          env:
+            - name: DB_HOST
+              value: "mariadb.default.svc"
+            - name: DB_ROOT_PASSWD
+              value: "db1024" #db's password
+            - name: TIME_ZONE
+              value: "Europe/Berlin"
+            - name: SEAFILE_ADMIN_EMAIL
+              value: "admin@yxs.one" #admin email
+            - name: SEAFILE_ADMIN_PASSWORD
+              value: "admim4538" #admin password
+            - name: SEAFILE_SERVER_LETSENCRYPT
+              value: "false"
+            - name: SEAFILE_SERVER_HOSTNAME
+              value: "192.168.123.136:30019" #hostname
+          ports:
+            - containerPort: 80
+          #        - containerPort: 443
+          #          name:  seafile-secure
+          volumeMounts:
+            - name: seafile-data
+              mountPath: /shared
+      volumes:
+        - name: seafile-data
+          persistentVolumeClaim:
+            claimName: seafile-data
+      restartPolicy: Always
+      # to get image from protected repository
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: seafile-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 200Gi
+  storageClassName: rook-ceph-block
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: seafile
+spec:
+  selector:
+    app: seafile
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 30019
